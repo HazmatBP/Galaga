@@ -23,6 +23,31 @@ packNumber = 0
 distanceBetweenEnemies = 4
 startPoints =[(-16, 200), (240,  200)] # Defines a left and right off screen spawnpoint for the enemies
 
+
+
+def fighterShoot():
+    
+    
+    # Creates a new fighter projectile
+    fighterShotsOnScreen.append(fighterShotDict.copy())
+    
+    # Sets attributes of projectile
+    fighterShotsOnScreen[-1]["x"] = fighterRect.centerx - 4
+    fighterShotsOnScreen[-1]["y"] = fighterRect.centery - 10
+    fighterShotsOnScreen[-1]["rect"].center = (fighterShotsOnScreen[-1]["x"], fighterShotsOnScreen[-1]["y"])
+    gameRenderPlane.blit(fighterShotsOnScreen[-1]["sprite"], fighterShotsOnScreen[-1]["rect"])
+    
+def moveFighterShots():
+    fighterShotSpeed = 3
+    # Goes through all projectiles and moves them up the screen
+    for i in fighterShotsOnScreen:
+        i["y"] -= fighterShotSpeed
+        i["rect"] = (i["x"], i["y"])
+        gameRenderPlane.blit(i["sprite"], i["rect"])
+    
+
+
+
 def shiftEnemies():
     global enemyXShift
     global enemyXShiftDir
@@ -309,6 +334,7 @@ greenScoutAction = IDLE
 for imageNumber in range(7):
     greenScoutIdle.append(pygame.image.load(f'Sprites\Enemies\Scout\GreenScout\Idle\Idle{imageNumber}.png').convert_alpha())
 
+
 greenScoutDict = {
      
     "sprite": greenScoutIdle[0], 
@@ -328,12 +354,33 @@ greenScoutDict = {
 
 }
 
+
 enemiesOnScreen = []
+
+
 
 enemyXShift = 0
 enemyXShiftDir = "right"
 # Creates a rectangle that the fighter is drawn on top of
 fighterRect = fighterIdle[0].get_rect()
+
+    
+# Importing Fighter Shot Sprite
+fighterShotSprite = []
+fighterShotSprite.append(pygame.image.load('Sprites\Projectiles\FighterShot.png').convert_alpha())
+
+fighterShotsOnScreen = []
+
+fighterShotDict = {
+    "x" : 0,
+    "y" : 0, 
+    "sprite" : fighterShotSprite[0],
+    "rect" : fighterShotSprite[0].get_rect(),
+    
+    
+    
+}
+
     
 # Fighter Movement Setup
 fighterSpeed = 2
@@ -352,6 +399,10 @@ while active:
     # Ticks up once per loop
     tick +=1
     
+
+    # Randomly twinkle stars in the background       
+    twinkleStars() 
+    
     for event in pygame.event.get():
         # Makes the quit button work correctly
         if event.type == pygame.QUIT:
@@ -361,6 +412,8 @@ while active:
         if event.type == pygame.KEYDOWN:  
             if event.key == pygame.K_a:
                 leftPressed = True
+            if event.key == pygame.K_SPACE:
+                fighterShoot()
 
             if event.key == pygame.K_d:
                 rightPressed = True
@@ -370,7 +423,9 @@ while active:
                 leftPressed = False
             if event.key == pygame.K_d:
                 rightPressed = False
-        
+                
+                
+
 
 
     
@@ -395,21 +450,20 @@ while active:
             
             
 
-    # Randomly twinkle stars in the background       
-    twinkleStars() 
     
     
     
     
-    if fighterAction == IDLE: 
-        
+    if fighterAction == IDLE:   
         fighterIndex = drawFighter(IDLE, fighterIndex)
+    
+    moveFighterShots()
     
     if tick % 30 == 0: 
         spawnPack()
     
     
-    if tick % 4 == 0:
+    if tick % 2 == 0:
         shiftEnemies()
     
     
