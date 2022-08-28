@@ -82,7 +82,7 @@ def moveArrangeEnemies(i):
     else:
         
         # If the goalX and StartX are the same, then the gradient calculation will divide by 0, and the program will crash. This stops that from happening. 
-        if goalX - startX == 0:
+        if goalX == startX:
             i["gradientBroken"] = True
         else:
             i["arrangeGradient"] = (goalY - startY) / (goalX - startX) 
