@@ -32,10 +32,10 @@ def fighterShoot():
     fighterShotsOnScreen.append(fighterShotDict.copy())
     
     # Sets attributes of projectile
-    fighterShotsOnScreen[-1]["x"] = fighterRect.centerx - 4
+    fighterShotsOnScreen[-1]["x"] = fighterRect.centerx - 3
     fighterShotsOnScreen[-1]["y"] = fighterRect.centery - 10
     fighterShotsOnScreen[-1]["rect"].center = (fighterShotsOnScreen[-1]["x"], fighterShotsOnScreen[-1]["y"])
-    gameRenderPlane.blit(fighterShotsOnScreen[-1]["sprite"], fighterShotsOnScreen[-1]["rect"])
+
     
 def moveFighterShots():
     fighterShotSpeed = 3
