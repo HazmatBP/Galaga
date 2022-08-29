@@ -38,6 +38,7 @@ def fighterShoot():
 
     
 def moveFighterShots():
+    
     fighterShotSpeed = 3
     # Goes through all projectiles and moves them up the screen
     for i in fighterShotsOnScreen:
@@ -46,8 +47,10 @@ def moveFighterShots():
         gameRenderPlane.blit(i["sprite"], i["rect"])
     
 def checkEnemyHit(i):
+    
+    global fighterShotsOnScreen
     for fighterShots in fighterShotsOnScreen:
-        if i["rect"].colliderect(fighterShots[fighterShotDict]["rect"]):
+        if i["rect"].colliderect(fighterShots["rect"]): 
             fighterShots[fighterShotDict].remove()
             enemiesOnScreen.remove(i)
 
@@ -472,10 +475,10 @@ while active:
     
     for i in enemiesOnScreen:
         if i["state"] == "intro":
-            moveIntroEnemies(i)
+            moveIntroEnemies(i) 
         elif i["state"] == "arrange":
             moveArrangeEnemies(i) 
-    
+        checkEnemyHit(i)
         i["rect"].topleft = (i["x"] + enemyXShift, i["y"])
         
         
