@@ -43,15 +43,22 @@ def moveFighterShots():
     # Goes through all projectiles and moves them up the screen
     for i in fighterShotsOnScreen:
         i["y"] -= fighterShotSpeed
-        i["rect"] = (i["x"], i["y"])
+        i["rect"].center = (i["x"], i["y"])
         gameRenderPlane.blit(i["sprite"], i["rect"])
     
 def checkEnemyHit(i):
-    
     global fighterShotsOnScreen
+    global enemiesOnScreen
+
     for fighterShots in fighterShotsOnScreen:
-        if i["rect"].colliderect(fighterShots["rect"]): 
-            fighterShots[fighterShotDict].remove()
+        # print(type(i["rect"]))
+        # print(type(fighterShots["rect"]))
+        #print(fighterShots["rect"])
+        if i["rect"].colliderect((fighterShots["rect"])) == True: 
+
+            
+            fighterShotsOnScreen.remove(fighterShots)
+            
             enemiesOnScreen.remove(i)
 
 def shiftEnemies():
@@ -357,6 +364,7 @@ greenScoutDict = {
     "arrangeStart" : (0, 0),
     "arrangeGradient" : 0,
     "gradientBroken" : True,
+    "alive" : False
 
 }
 
@@ -479,7 +487,10 @@ while active:
         elif i["state"] == "arrange":
             moveArrangeEnemies(i) 
         checkEnemyHit(i)
-        i["rect"].topleft = (i["x"] + enemyXShift, i["y"])
+        
+        
+        i["x"] += enemyXShift
+        i["rect"].topleft = (i["x"], i["y"])
         
         
         gameRenderPlane.blit(i["sprite"], i["rect"])
