@@ -1,9 +1,10 @@
+
 import pygame
 import random
 import math
 # By Harry McGrath, 2022
 
-
+lengthOfArray = 0
 
 # Defining Functions
 
@@ -49,17 +50,27 @@ def moveFighterShots():
 def checkEnemyHit(i):
     global fighterShotsOnScreen
     global enemiesOnScreen
+    global toRemove
 
-    for fighterShots in fighterShotsOnScreen:
-        # print(type(i["rect"]))
-        # print(type(fighterShots["rect"]))
-        #print(fighterShots["rect"])
-        if i["rect"].colliderect((fighterShots["rect"])) == True: 
+    # for fighterShots in fighterShotsOnScreen:
+    #     # print(type(i["rect"]))
+    #     # print(type(fighterShots["rect"]))
+    #     #print(fighterShots["rect"])
+    #     if i["rect"].colliderect((fighterShots["rect"])) == True: 
 
             
-            fighterShotsOnScreen.remove(fighterShots)
+            # fighterShotsOnScreen.pop(fighterShots)
             
-            enemiesOnScreen.remove(i)
+            # enemiesOnScreen.pop(i)
+    
+    # for k in range(len(fighterShotsOnScreen)):
+    #     if fighterShotsOnScreen[k]["rect"].colliderect(i["rect"]):
+    #         toRemove.append(k)
+    
+    # for z in fighterShotsOnScreen:
+    #     if z["rect"].colliderect(i["rect"]):
+    #         toRemove.append(i.copy())
+            
 
 def shiftEnemies():
     global enemyXShift
@@ -178,7 +189,7 @@ def spawnPack():
                 enemiesOnScreen[-1]["x"] -= i * 5
             enemiesOnScreen[-1]["positionInPack"] = i             
             enemiesOnScreen[-1]["state"] = "intro"
-            enemiesOnScreen[-1]["rect"].center = (enemiesOnScreen[-1]["x"], enemiesOnScreen[-1]["y"]) # Sets the enemy rect position to its x and y values
+
             
             
         elif packNumber == 2 and alivePacks[1] == False:
@@ -190,7 +201,7 @@ def spawnPack():
                 enemiesOnScreen[-1]["x"] -= i * 8
             enemiesOnScreen[-1]["positionInPack"] = i             
             enemiesOnScreen[-1]["state"] = "intro"
-            enemiesOnScreen[-1]["rect"].center = (enemiesOnScreen[-1]["x"], enemiesOnScreen[-1]["y"]) # Sets the enemy rect position to its x and y values   
+
             
             
         elif packNumber == 3 and alivePacks[2] == False:
@@ -212,7 +223,7 @@ def spawnPack():
                 
             enemiesOnScreen[-1]["positionInPack"] = i             
             enemiesOnScreen[-1]["state"] = "intro"
-            enemiesOnScreen[-1]["rect"].center = (enemiesOnScreen[-1]["x"], enemiesOnScreen[-1]["y"]) # Sets the enemy rect position to its x and y values   
+ 
             
                  
         elif packNumber == 4 and alivePacks[3] == False:
@@ -224,7 +235,7 @@ def spawnPack():
                 enemiesOnScreen[-1]["x"] += i * 8
             enemiesOnScreen[-1]["positionInPack"] = i             
             enemiesOnScreen[-1]["state"] = "intro"
-            enemiesOnScreen[-1]["rect"].center = (enemiesOnScreen[-1]["x"], enemiesOnScreen[-1]["y"]) # Sets the enemy rect position to its x and y values
+
             
             
         elif packNumber == 5 and alivePacks[4] == False:
@@ -236,7 +247,7 @@ def spawnPack():
                 enemiesOnScreen[-1]["x"] += i * 5   
             enemiesOnScreen[-1]["positionInPack"] = i             
             enemiesOnScreen[-1]["state"] = "intro"
-            enemiesOnScreen[-1]["rect"].center = (enemiesOnScreen[-1]["x"], enemiesOnScreen[-1]["y"]) # Sets the enemy rect position to its x and y values 
+
                   
     
 
@@ -384,6 +395,7 @@ fighterShotSprite = []
 fighterShotSprite.append(pygame.image.load('Sprites\Projectiles\FighterShot.png').convert_alpha())
 
 fighterShotsOnScreen = []
+toRemove = []
 
 fighterShotDict = {
     "x" : 0,
@@ -406,13 +418,14 @@ fighterRect.topleft = (0, 241)
 clock = pygame.time.Clock()
 
 
-tick = 0
+tick = 59
 active = True
 while active:
     
     # Ticks up once per loop
     tick +=1
-    
+    toRemove = []
+
 
     # Randomly twinkle stars in the background       
     twinkleStars() 
@@ -487,10 +500,14 @@ while active:
         elif i["state"] == "arrange":
             moveArrangeEnemies(i) 
         checkEnemyHit(i)
-        
-        
-        i["x"] += enemyXShift
-        i["rect"].topleft = (i["x"], i["y"])
+        # lengthOfArray = len(toRemove)
+        # for e in range(lengthOfArray, 0, - 1):
+        #     enemiesOnScreen.pop(e)
+        #     lengthOfArray = len(toRemove)  
+            
+
+
+        i["rect"].topleft = (i["x"] , i["y"])           
         
         
         gameRenderPlane.blit(i["sprite"], i["rect"])
