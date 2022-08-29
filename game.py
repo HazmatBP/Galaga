@@ -45,8 +45,11 @@ def moveFighterShots():
         i["rect"] = (i["x"], i["y"])
         gameRenderPlane.blit(i["sprite"], i["rect"])
     
-
-
+def checkEnemyHit(i):
+    for fighterShots in fighterShotsOnScreen:
+        if i["rect"].colliderect(fighterShots[fighterShotDict]["rect"]):
+            fighterShots[fighterShotDict].remove()
+            enemiesOnScreen.remove(i)
 
 def shiftEnemies():
     global enemyXShift
