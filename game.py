@@ -1,10 +1,10 @@
 import pygame
 import random
 import math
-# By Harry McGrath, 2022
+import time 
+# By Harry McGrath, 2022 
 
-lengthOfArray = 0
-screenDead = False
+
 # Defining Functions
 
 def drawFighter(fighterAction, fighterIndex, delay = 6):
@@ -26,19 +26,92 @@ distanceBetweenEnemies = 4
 startPoints =[(-16, 200), (240,  200)] # Defines a left and right off screen spawnpoint for the enemies
 
 
+def enemyShoot():
+    global enemiesOnScreen, enemyShotsOnScreen, active
 
-def fighterShoot():
-    global shotCooldown1
+    enemyShotSpeed = 0.05
     
-    if shotCooldown1 == 0:
+    for i in enemiesOnScreen:
+        # Checks if the enemy is far away enough horizontally to the fighter, if it is idling, and if there aren't too many projectiles on screen.
+        # If so, it will only shoot based on a random chance, so 30 enemies don't shoot at once.
+        if math.isclose(i["x"], fighterRect.x, abs_tol = 50) == False and i["state"] == "idle" and len(enemyShotsOnScreen) < 5 and random.randint(1,200) == 100:
+            
+            enemyShotsOnScreen.append(enemyShotDict.copy())
+            enemyShotsOnScreen[-1]["shootStart"] = (i["x"], i["y"]) 
+            enemyShotsOnScreen[-1]["shootGoal"] = (fighterRect.x, fighterRect.y)
+            enemyShotsOnScreen[-1]["x"] = i["x"]
+            enemyShotsOnScreen[-1]["y"] = i["y"]
+            enemyShotsOnScreen[-1]["rect"].center = (i["x"] + 8, i["y"] + 8) # The +8 means the projectiles spawn in the center of the enemy instead of the top left
+            pygame.mixer.Sound.play(soundEffects[1])
+            
+
+        for k in enemyShotsOnScreen:
+            startX = k["shootStart"][0]
+            startY = k["shootStart"][1]
+            
+            goalX = k["shootGoal"][0]
+            goalY = k["shootGoal"][1]
+            
+            if goalX == startX:
+                k["gradientBroken"] = True
+            
+            if k["gradientBroken"] == True:
+                k["y"] += enemyShotSpeed
+                
+            else:
+                if goalX > startX:
+                    k["x"] += enemyShotSpeed
+                    
+                elif goalX < startX:
+                    k["x"] -= enemyShotSpeed
+                    
+                k["y"] = (goalY) + (k["x"] - goalX) * ((goalY - startY) / (goalX - startX))
+            
+            
+            # If shot is out of bounds, marks it for deletion
+            if k["x"] > 224 or k["y"] > 288: 
+                k["alive"] = False
+                
+            
+            # applying x and y to rect
+            k["rect"].center = (k["x"], k["y"])
+            
+            gameRenderPlane.blit(enemyShotSprite[0], k["rect"])
+            
+            
+            # Checks if shot has hit enemy, if so, triggers game over   
+            if k["rect"].colliderect(fighterRect):
+                active = False
+            
+        # Deletes shots that were marked for deletion prior 
+        for j in range(len(enemyShotsOnScreen)):
+            if enemyShotsOnScreen[j - 1]["alive"] == False:
+                enemyShotsOnScreen.pop(j - 1)
+                
+
+
+
+
+
+
+
+ 
+def fighterShoot():
+    global shotCooldown1, shotCooldown2
+    
+    if shotCooldown1 < 60:
         # Creates a new fighter projectile
         fighterShotsOnScreen.append(fighterShotDict.copy())
-
+        #Plays the appropriate sound effect.
+        pygame.mixer.Sound.play(soundEffects[3])
+        
         # Sets attributes of projectile
         fighterShotsOnScreen[-1]["x"] = fighterRect.centerx 
-        fighterShotsOnScreen[-1]["y"] = fighterRect.centery - 100
+        fighterShotsOnScreen[-1]["y"] = fighterRect.centery - 70
         fighterShotsOnScreen[-1]["rect"].center = (fighterShotsOnScreen[-1]["x"], fighterShotsOnScreen[-1]["y"])
 
+
+        # Checks if the fighter and enemies are near each other's x-position, and if so, decreases the enemies health by 1
         for i in enemiesOnScreen:
             if math.isclose(i["x"], fighterRect.x, abs_tol = 10):
                 i["health"] -= 1
@@ -49,11 +122,12 @@ def fighterShoot():
                 
             elif i["health"] == 1:
                 i["sprite"] = greenScoutIdle[1]
-                
+            # Kills the enemy if its health is 0
             elif i["health"] == 0:
                 i["alive"] = False
 
-        shotCooldown1 = 10
+        shotCooldown1 += 25
+
         
 
     
@@ -65,7 +139,8 @@ def moveFighterShots():
         i["y"] -= fighterShotSpeed
         i["rect"].center = (i["x"], i["y"])
         gameRenderPlane.blit(i["sprite"], i["rect"])
-    
+  
+# Shifts enemies left and right
 def shiftEnemies():
     global enemyXShift
     global enemyXShiftDir
@@ -333,9 +408,24 @@ holdTwinkle = False
 twinkleRarity = 80
 twinkleHoldLength = 10
 
+
+# Load SFX
+soundEffects = []
+soundEffects.append(pygame.mixer.Sound('Sounds/EnemyDie.wav')) 
+soundEffects.append(pygame.mixer.Sound('Sounds/EnemyShoot.wav'))
+soundEffects.append(pygame.mixer.Sound('Sounds/ShipDie.wav'))
+soundEffects.append(pygame.mixer.Sound('Sounds/Shoot.wav'))
+
+
 # Importing Background Sprites
 for imageNumber in range(19):
     background.append(pygame.image.load(f'Sprites\Background\Twinkle\Twinkle{imageNumber}.png').convert())
+
+# Importing Game Over
+
+gameOverScreen = []
+gameOverScreen.append(pygame.image.load('Sprites\Background\GameOver.png'))
+
     
  
 # Importing Fighter Idle Sprites
@@ -351,6 +441,7 @@ greenScoutIndex = 0
 greenScoutAction = IDLE
 for imageNumber in range(2):
     greenScoutIdle.append(pygame.image.load(f'Sprites\Enemies\Scout\GreenScout\Idle\Idle{imageNumber}.png').convert_alpha())
+
 
 
 greenScoutDict = {
@@ -377,8 +468,7 @@ greenScoutDict = {
 
 
 enemiesOnScreen = []
-toRemove = []
-
+screenDead = False
 
 enemyXShift = 0
 enemyXShiftDir = "right"
@@ -390,7 +480,16 @@ fighterRect = fighterIdle[0].get_rect()
 fighterShotSprite = []
 fighterShotSprite.append(pygame.image.load('Sprites\Projectiles\FighterShot.png').convert_alpha())
 
+# Importing Enemy Shot Sprite
+enemyShotSprite = []
+enemyShotSprite.append(pygame.image.load('Sprites\Projectiles\EnemyShot.png').convert_alpha())
+
+# Importing Fighter Die Sprite
+fighterDieSprite = []
+fighterDieSprite.append(pygame.image.load('Sprites\Fighter\FighterDie.png').convert_alpha())
+
 fighterShotsOnScreen = []
+
 
 fighterShotDict = {
     "x" : 0,
@@ -398,11 +497,23 @@ fighterShotDict = {
     "sprite" : fighterShotSprite[0],
     "rect" : fighterShotSprite[0].get_rect(),
     
-    
-    
 }
 
-    
+# Enemy Projectile Setup
+enemyShotsOnScreen = []
+
+enemyShotDict = {
+    "x" : 0,
+    "y" : 0, 
+    "sprite" : enemyShotSprite[0],
+    "rect" : enemyShotSprite[0].get_rect(),
+    "shootStart" : (0,0),
+    "shootGoal" : (0,0),
+    "gradientBroken" : False,
+    "alive" : True
+}
+
+ 
 # Fighter Movement Setup
 fighterSpeed = 2
 leftPressed = 0
@@ -453,7 +564,6 @@ while active:
 
 
 
-    
                  
 
             
@@ -476,49 +586,77 @@ while active:
             
 
     
-    
+    # Sets 2 cooldowns, so the player can shoot twice in rapid succession 
     if shotCooldown1 > 0:
         shotCooldown1 -= 1
+        
+    if shotCooldown2 > 0:
+        shotCooldown2 -= 1
     
     if fighterAction == IDLE:   
         fighterIndex = drawFighter(IDLE, fighterIndex)
     
+    
+    # Moves fighter shots along the screen vertically 
     moveFighterShots()
     
     if tick % 30 == 0 and screenDead: 
         spawnPack()
     
-    
     if tick % 2 == 0:
         shiftEnemies()
     
-    enemyIndexCount = 0
+
     for i in enemiesOnScreen:
         if i["state"] == "intro":
             moveIntroEnemies(i) 
         elif i["state"] == "arrange":
             moveArrangeEnemies(i) 
             
-        enemyIndexCount += 1   
+
         
 
-        i["rect"].topleft = (i["x"] , i["y"])           
+        i["rect"].topleft = (i["x"] + enemyXShift , i["y"])           
         
         if i["alive"]:   
             gameRenderPlane.blit(i["sprite"], i["rect"])
         else:
             i["x"] = 500
             
-            
+        # Only sets screenDead to True if all enemies on screen are dead 
         if screenDead == True and i["alive"] == True:
             screenDead = False
-
+            
+    # Allows new packs to spawn once screenDead is True
     if screenDead == True:
         alivePacks = [False, False, False , False, False]
-            
+        
+    # Causes enemies within a certain x-distance shoot at the fighter
+    enemyShoot()  
+    
+    # draws the renderplane onto the screen, and upscales it 3x
+           
     gameDisplay.blit(pygame.transform.scale(gameRenderPlane, gameDisplay.get_rect().size), (0,0))
 
     pygame.display.update()
     clock.tick(60)
+
+# Game Over Process
+
+# Draws fighter death sprite and plays death sound
+pygame.mixer.Sound.play(soundEffects[2])
+
+gameRenderPlane.blit(fighterDieSprite[0], fighterRect)
+gameDisplay.blit(pygame.transform.scale(gameRenderPlane, gameDisplay.get_rect().size), (0,0))
+pygame.display.update()
+time.sleep(1)
+
+
+# Draws Game Over Screen
+gameRenderPlane.blit(gameOverScreen[0], (0, 0))
+gameDisplay.blit(pygame.transform.scale(gameRenderPlane, gameDisplay.get_rect().size), (0,0))
+pygame.display.update()
+time.sleep(2)
+
 
 pygame.quit()
