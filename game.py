@@ -1,11 +1,10 @@
-
 import pygame
 import random
 import math
 # By Harry McGrath, 2022
 
 lengthOfArray = 0
-
+screenDead = False
 # Defining Functions
 
 def drawFighter(fighterAction, fighterIndex, delay = 6):
@@ -15,9 +14,11 @@ def drawFighter(fighterAction, fighterIndex, delay = 6):
     if fighterAction == 'IDLE':
         gameRenderPlane.blit(fighterIdle[fighterIndex//delay],fighterRect)
     fighterIndex += 1
-    
+
     return fighterIndex
 
+    
+    
 # Pack Setup - Defines the amount of enemies in a pack, and the 4 different packs
 packSize = 0
 packNumber = 0
@@ -27,61 +28,44 @@ startPoints =[(-16, 200), (240,  200)] # Defines a left and right off screen spa
 
 
 def fighterShoot():
+    global shotCooldown1
     
-    
-    # Creates a new fighter projectile
-    fighterShotsOnScreen.append(fighterShotDict.copy())
-    
-    # Sets attributes of projectile
-    fighterShotsOnScreen[-1]["x"] = fighterRect.centerx - 3
-    fighterShotsOnScreen[-1]["y"] = fighterRect.centery - 10
-    fighterShotsOnScreen[-1]["rect"].center = (fighterShotsOnScreen[-1]["x"], fighterShotsOnScreen[-1]["y"])
+    if shotCooldown1 == 0:
+        # Creates a new fighter projectile
+        fighterShotsOnScreen.append(fighterShotDict.copy())
+
+        # Sets attributes of projectile
+        fighterShotsOnScreen[-1]["x"] = fighterRect.centerx 
+        fighterShotsOnScreen[-1]["y"] = fighterRect.centery - 100
+        fighterShotsOnScreen[-1]["rect"].center = (fighterShotsOnScreen[-1]["x"], fighterShotsOnScreen[-1]["y"])
+
+        for i in enemiesOnScreen:
+            if math.isclose(i["x"], fighterRect.x, abs_tol = 10):
+                i["health"] -= 1
+                
+                
+            if i["health"] == 2:
+                i["sprite"] = greenScoutIdle[0]
+                
+            elif i["health"] == 1:
+                i["sprite"] = greenScoutIdle[1]
+                
+            elif i["health"] == 0:
+                i["alive"] = False
+
+        shotCooldown1 = 10
+        
 
     
 def moveFighterShots():
     
-    fighterShotSpeed = 3
+    fighterShotSpeed = 20
     # Goes through all projectiles and moves them up the screen
     for i in fighterShotsOnScreen:
         i["y"] -= fighterShotSpeed
         i["rect"].center = (i["x"], i["y"])
         gameRenderPlane.blit(i["sprite"], i["rect"])
     
-def checkEnemyHit(i):
-    global fighterShotsOnScreen
-    global enemiesOnScreen
-    hit = False
-    for j in range(len(fighterShotsOnScreen) -1, -1, -1):
-        if len(fighterShotsOnScreen) >= 1:
-            if i["rect"].colliderect(fighterShotsOnScreen[j]["rect"]) == True:
-                print("collision!")    
-                hit = True
-    return hit
-
-
-        
-                    
-
-    # for fighterShots in fighterShotsOnScreen: 
-    #     # print(type(i["rect"]))
-    #     # print(type(fighterShots["rect"]))
-    #     #print(fighterShots["rect"])
-    #     if i["rect"].colliderect((fighterShots["rect"])) == True: 
-
-            
-            # fighterShotsOnScreen.pop(fighterShots)
-            
-            # enemiesOnScreen.pop(i)
-    
-    # for k in range(len(fighterShotsOnScreen)):
-    #     if fighterShotsOnScreen[k]["rect"].colliderect(i["rect"]):
-    #         toRemove.append(k)
-    
-    # for z in fighterShotsOnScreen:
-    #     if z["rect"].colliderect(i["rect"]):
-    #         toRemove.append(i.copy())
-            
-
 def shiftEnemies():
     global enemyXShift
     global enemyXShiftDir
@@ -365,7 +349,7 @@ for imageNumber in range(2):
 greenScoutIdle = []
 greenScoutIndex = 0
 greenScoutAction = IDLE
-for imageNumber in range(7):
+for imageNumber in range(2):
     greenScoutIdle.append(pygame.image.load(f'Sprites\Enemies\Scout\GreenScout\Idle\Idle{imageNumber}.png').convert_alpha())
 
 
@@ -385,7 +369,9 @@ greenScoutDict = {
     "arrangeStart" : (0, 0),
     "arrangeGradient" : 0,
     "gradientBroken" : True,
-    "alive" : False
+    "alive" : True,
+    "health" : 2
+    
 
 }
 
@@ -426,10 +412,13 @@ fighterRect.topleft = (0, 241)
     
 clock = pygame.time.Clock()
 
-
+shotCooldown1 = 0
+shotCooldown2 = 0
 tick = 59
 active = True
 while active:
+    
+    screenDead = True
     
     # Ticks up once per loop
     tick +=1
@@ -488,14 +477,15 @@ while active:
 
     
     
-    
+    if shotCooldown1 > 0:
+        shotCooldown1 -= 1
     
     if fighterAction == IDLE:   
         fighterIndex = drawFighter(IDLE, fighterIndex)
     
     moveFighterShots()
     
-    if tick % 30 == 0: 
+    if tick % 30 == 0 and screenDead: 
         spawnPack()
     
     
@@ -511,23 +501,21 @@ while active:
             
         enemyIndexCount += 1   
         
-        if checkEnemyHit(i) == True:
-            toRemove.append(enemyIndexCount)
-
-        # lengthOfArray = len(toRemove)
-        # for e in range(lengthOfArray, 0, - 1):d
-        #     enemiesOnScreen.pop(e)
-        #     lengthOfArray = len(toRemove)  
-            
 
         i["rect"].topleft = (i["x"] , i["y"])           
         
-        
-        gameRenderPlane.blit(i["sprite"], i["rect"])
-        
-    for i in range(len(toRemove) - 1, - 1, - 1):
-        enemiesOnScreen.remove(toRemove)
-    
+        if i["alive"]:   
+            gameRenderPlane.blit(i["sprite"], i["rect"])
+        else:
+            i["x"] = 500
+            
+            
+        if screenDead == True and i["alive"] == True:
+            screenDead = False
+
+    if screenDead == True:
+        alivePacks = [False, False, False , False, False]
+            
     gameDisplay.blit(pygame.transform.scale(gameRenderPlane, gameDisplay.get_rect().size), (0,0))
 
     pygame.display.update()
