@@ -50,9 +50,19 @@ def moveFighterShots():
 def checkEnemyHit(i):
     global fighterShotsOnScreen
     global enemiesOnScreen
-    global toRemove
+    hit = False
+    for j in range(len(fighterShotsOnScreen) -1, -1, -1):
+        if len(fighterShotsOnScreen) >= 1:
+            if i["rect"].colliderect(fighterShotsOnScreen[j]["rect"]) == True:
+                print("collision!")    
+                hit = True
+    return hit
 
-    # for fighterShots in fighterShotsOnScreen:
+
+        
+                    
+
+    # for fighterShots in fighterShotsOnScreen: 
     #     # print(type(i["rect"]))
     #     # print(type(fighterShots["rect"]))
     #     #print(fighterShots["rect"])
@@ -381,7 +391,7 @@ greenScoutDict = {
 
 
 enemiesOnScreen = []
-
+toRemove = []
 
 
 enemyXShift = 0
@@ -395,7 +405,6 @@ fighterShotSprite = []
 fighterShotSprite.append(pygame.image.load('Sprites\Projectiles\FighterShot.png').convert_alpha())
 
 fighterShotsOnScreen = []
-toRemove = []
 
 fighterShotDict = {
     "x" : 0,
@@ -424,7 +433,7 @@ while active:
     
     # Ticks up once per loop
     tick +=1
-    toRemove = []
+
 
 
     # Randomly twinkle stars in the background       
@@ -493,24 +502,31 @@ while active:
     if tick % 2 == 0:
         shiftEnemies()
     
-    
+    enemyIndexCount = 0
     for i in enemiesOnScreen:
         if i["state"] == "intro":
             moveIntroEnemies(i) 
         elif i["state"] == "arrange":
             moveArrangeEnemies(i) 
-        checkEnemyHit(i)
+            
+        enemyIndexCount += 1   
+        
+        if checkEnemyHit(i) == True:
+            toRemove.append(enemyIndexCount)
+
         # lengthOfArray = len(toRemove)
-        # for e in range(lengthOfArray, 0, - 1):
+        # for e in range(lengthOfArray, 0, - 1):d
         #     enemiesOnScreen.pop(e)
         #     lengthOfArray = len(toRemove)  
             
-
 
         i["rect"].topleft = (i["x"] , i["y"])           
         
         
         gameRenderPlane.blit(i["sprite"], i["rect"])
+        
+    for i in range(len(toRemove) - 1, - 1, - 1):
+        enemiesOnScreen.remove(toRemove)
     
     gameDisplay.blit(pygame.transform.scale(gameRenderPlane, gameDisplay.get_rect().size), (0,0))
 
