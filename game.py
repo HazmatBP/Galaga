@@ -34,8 +34,7 @@ def enemyShoot():
     for i in enemiesOnScreen:
         # Checks if the enemy is far away enough horizontally to the fighter, if it is idling, and if there aren't too many projectiles on screen.
         # If so, it will only shoot based on a random chance, so 30 enemies don't shoot at once.
-        if math.isclose(i["x"], fighterRect.x, abs_tol = 50) == False and i["state"] == "idle" and len(enemyShotsOnScreen) < 10 and random.randint(1,200) == 100:
-            
+        if math.isclose(i["x"], fighterRect.x, abs_tol = 50) == False and i["state"] == "idle" and len(enemyShotsOnScreen) < 50 and random.randint(1,200) == 200:
             enemyShotsOnScreen.append(enemyShotDict.copy())
             enemyShotsOnScreen[-1]["shootStart"] = (i["x"], i["y"]) 
             enemyShotsOnScreen[-1]["shootGoal"] = (fighterRect.x, fighterRect.y)
@@ -499,7 +498,7 @@ fighterShotDict = {
     
 }
 
-# Enemy Projectile Setup
+# Enemy Setup
 enemyShotsOnScreen = []
 
 enemyShotDict = {
